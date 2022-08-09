@@ -1,0 +1,97 @@
+@font-face {
+    font-weight: 400;
+    font-family: "Roboto Mono";
+    src: url("../assets/fonts/RobotoMono-Regular.ttf");
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+
+    font-family: "Roboto Mono", monospace;
+
+    background: #333131;
+}
+
+p {
+    margin: 5px 0;
+}
+
+/* BEGIN (write your solution here) */
+
+.wrapper {
+    width: 300px;
+
+    font-family: "Roboto Mono", sans-serif;
+
+    background: #2c3e50;
+}
+
+.result {
+    padding: 30px;
+
+    color: #fff;
+
+    text-align: right;
+
+    background: #505c68;
+}
+
+button {
+    display: block;
+    width: 25%;
+    height: 75px;
+
+    font-size: 1.2em;
+
+    text-align: center;
+
+    background: none;
+
+    border: none;
+
+    cursor: pointer;
+}
+
+button:hover {
+    background: #364c63;
+}
+
+button:active {
+    background: #505c68;
+}
+
+.first-row,
+.second-row,
+.third-row,
+.fourth-row,
+.fifth-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* END */
+
+.small {
+    font-size: 80%;
+}
+
+.bg-blue {
+    background: #3498db;
+}
+
+.bg-blue:hover {
+    background: #67b2e4;
+}
+
+.text-big {
+    font-size: 3em;
+}
+
+.text-gray {
+    color: #ced4d9;
+}
