@@ -88,6 +88,10 @@ button:active {
     background: #67b2e4;
 }
 
+.bg-blue:active {
+    background: #505c68;
+}
+
 .text-big {
     font-size: 3em;
 }
