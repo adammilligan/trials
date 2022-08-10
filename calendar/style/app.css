@@ -74,6 +74,7 @@ td {
 td:hover,
 td:focus {
     background: #589c5f;
+    cursor: pointer;
 }
 
 .calendar-todo {
