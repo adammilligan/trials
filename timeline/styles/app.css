@@ -1,0 +1,58 @@
+body {
+    box-sizing: border-box;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 10px;
+
+    color: #fff;
+    font: 18px/1.5 sans-serif;
+
+    background-image: linear-gradient(to bottom, #772dff, #6046ff, #4756ff, #2c63ff, #006eff);
+}
+
+h2,
+p {
+    margin: 0;
+}
+
+/* BEGIN (write your solution here) */
+
+.timeline {
+    position: relative;
+
+    box-sizing: border-box;
+
+    height: 100%;
+    margin: 0;
+    padding: 30px 0 30px 48px;
+
+    border-left: 2px solid #fff;
+}
+
+.timeline-item {
+    margin-bottom: 100px;
+
+    list-style: none;
+}
+
+.timeline-item:last-child {
+    margin: 0;
+}
+
+.timeline-item::before {
+    position: absolute;
+
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-top: 10px;
+    margin-left: -58px;
+
+    background: #80fcff;
+    border-radius: 50%;
+
+    content: "";
+}
+
+/* END */
