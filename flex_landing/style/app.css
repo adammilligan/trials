@@ -1,0 +1,103 @@
+@font-face {
+    font-weight: 400;
+    font-family: 'Brygada1918';
+    src: url("../assets/fonts/Brygada1918-Regular.otf") format("opentype");
+}
+
+@font-face {
+    font-weight: 400;
+    font-family: 'Open Sans';
+    src: url("../assets/fonts/OpenSans-Regular.ttf");
+}
+
+@font-face {
+    font-width: 400;
+    font-family: 'Arial';
+    src: url("../assets/fonts/arial.ttf");
+}
+
+body {
+    background: #0B1D26;
+    line-height: 2.3em;
+    font-family: 'Open Sans';
+    color: #fff;
+    display: flex;
+    justify-content: center;
+}
+
+.wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    width: 1280px;
+    padding-top: 100px;
+    padding-bottom: 100px;
+}
+
+h1 {
+    position: absolute;
+    font-family: 'Open Sans';
+    font-size: 200px;
+    opacity: 0.1;
+    width: 233px;
+    height: 0px;
+    left: -61px;
+    top: 13px;
+}
+
+.left-side {
+    width: 50%;
+    position: relative;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.right-side {
+    display: flex;
+    text-align: center;
+    width: 50%;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+h2 {
+    font-size: 64px;
+    font-family: 'Brygada1918';
+    line-height: 70px;
+}
+
+.left-side-about {
+    font-family: 'Open Sans';
+    color: #F7DF1E;
+    font-size: 16px;
+    line-height: 32px;
+    margin-left: 96px;
+    text-transform: uppercase;
+}
+
+.arrow {
+    position: absolute;
+    width: 70px;
+    height: 0px;
+    border-top: 2px solid #F7DF1E;
+    left: 34px;
+    top: 46px;
+}
+
+a {
+    text-decoration: none;
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 39px;
+    color: #F7DF1E;
+}
+
+a > span {
+    font-family: 'Arial';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 25.5px;
+    line-height: 26px;
+}
