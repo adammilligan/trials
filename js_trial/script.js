@@ -1384,3 +1384,319 @@ const groupBy = (objects, key) => objects.reduce((acc, object) => {
 
 export default groupBy;
 // END
+
+// emails.js
+// Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход список емейлов, а возвращает количество емейлов, расположенных на каждом бесплатном домене. Список бесплатных доменов хранится в константе freeEmailDomains.
+//
+//     Примеры
+// const emails = [
+//     'info@gmail.com',
+//     'info@yandex.ru',
+//     'info@hotmail.com',
+//     'mk@host.com',
+//     'support@hexlet.io',
+//     'key@yandex.ru',
+//     'sergey@gmail.com',
+//     'vovan@gmail.com',
+//     'vovan@hotmail.com',
+// ];
+//
+// getFreeDomainsCount(emails);
+// // {
+// //   'gmail.com': 3,
+// //   'yandex.ru': 2,
+// //   'hotmail.com': 2,
+// // };
+// Другие примеры смотрите в модуле с тестами.
+//
+//     Подсказки
+// При решении вам может понадобится функция get() из библиотеки lodash.
+//
+//  моё
+// @ts-check
+
+import get from 'lodash/get.js';
+
+const freeEmailDomains = [
+    'gmail.com',
+    'yandex.ru',
+    'hotmail.com',
+    'yahoo.com',
+];
+
+// BEGIN (write your solution here)
+export default (list) => {
+    const domainsObject = {};
+    for (let listItem = 0; listItem < list.length; listItem += 1) {
+        const key = list[listItem].split('@')[1];
+        if (freeEmailDomains.includes(key)) {
+            if (get(domainsObject, key)) {
+                domainsObject[key] += 1;
+            } else {
+                domainsObject[key] = 1;
+            }
+        }
+    }
+    return domainsObject;
+};
+
+
+// учителя
+
+
+// @ts-check
+
+import get from 'lodash/get.js';
+
+const freeEmailDomains = [
+    'gmail.com',
+    'yandex.ru',
+    'hotmail.com',
+    'yahoo.com',
+];
+
+// BEGIN
+const getFreeDomainsCount = (emails) => emails
+    .map((email) => {
+        const [, domain] = email.split('@');
+        return domain;
+    })
+    .filter((domain) => freeEmailDomains.includes(domain))
+    .reduce((acc, domain) => {
+        const count = get(acc, domain, 0) + 1;
+        return { ...acc, [domain]: count };
+    }, {});
+
+export default getFreeDomainsCount;
+// END
+
+// users.js
+// Реализуйте и экспортируйте по умолчанию функцию, которая принимает список пользователей и возвращает объект, где ключ - это год рождения, а значение - это количество мужчин, родившихся в этот год.
+//
+//     Примеры
+// const users = [
+//     { name: 'Bronn', gender: 'male', birthday: '1973-03-23' },
+//     { name: 'Reigar', gender: 'male', birthday: '1973-11-03' },
+//     { name: 'Eiegon', gender: 'male', birthday: '1963-11-03' },
+//     { name: 'Sansa', gender: 'female', birthday: '2012-11-03' },
+//     { name: 'Jon', gender: 'male', birthday: '1980-11-03' },
+//     { name: 'Robb', gender: 'male', birthday: '1980-05-14' },
+//     { name: 'Tisha', gender: 'female', birthday: '2012-11-03' },
+//     { name: 'Rick', gender: 'male', birthday: '2012-11-03' },
+//     { name: 'Joffrey', gender: 'male', birthday: '1999-11-03' },
+//     { name: 'Edd', gender: 'male', birthday: '1973-11-03' },
+// ];
+//
+// getMenCountByYear(users);
+// // {
+// //   1973: 3,
+// //   1963: 1,
+// //   1980: 2,
+// //   2012: 1,
+// //   1999: 1,
+// // };
+// Подсказки
+// Для извлечения года из даты используйте метод slice
+
+// Решение vadim_valygin
+
+import _ from 'lodash';
+
+// BEGIN (write your solution here)
+export default (users) => users
+    .filter(({ gender }) => gender === 'male')
+    .map(({ birthday }) => birthday.split('-')[0])
+    .reduce((acc, birthday) => {
+        const count = _.get(acc, birthday, 0) + 1;
+        return { ...acc, [birthday]: count };
+    }, {});
+// END
+
+// Решение учителя
+
+// @ts-check
+
+import _ from 'lodash';
+
+// BEGIN
+const getMenCountByYear = (users) => {
+    const men = users.filter(({ gender }) => gender === 'male');
+
+    const years = men.map(({ birthday }) => birthday.slice(0, 4));
+
+    return years.reduce((acc, year) => {
+        const count = _.get(acc, year, 0) + 1;
+        return { ...acc, [year]: count };
+    }, {});
+};
+
+// findIndexOfNearest.js
+// Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход массив чисел и искомое число. Задача функции — найти в массиве ближайшее число к искомому и вернуть его индекс в массиве.
+//
+//     Если в массиве содержится несколько чисел, одновременно являющихся ближайшими к искомому числу, то возвращается наименьший из индексов ближайших чисел.
+//
+//     Примеры
+// findIndexOfNearest([], 2);              // null
+// findIndexOfNearest([15, 10, 3, 4], 0);  // 2
+// findIndexOfNearest([7, 5, 3, 2], 4);    // 1
+// findIndexOfNearest([7, 5, 4, 4, 3], 4); // 2
+
+// Решение vadim_valygin
+
+
+// @ts-check
+
+// BEGIN (write your solution here)
+export default (numbers, number) => {
+    if (!numbers.length) {
+        return null;
+    }
+    const diff = numbers.map((index) => Math.abs(index - number));
+    const min = Math.min(...diff);
+    return diff.indexOf(min);
+};
+// END
+
+
+// Решение учителя
+/
+export default (numbers, num) => {
+    if (numbers.length === 0) {
+        return null;
+    }
+
+    const diffs = numbers.map((element) => Math.abs(num - element));
+
+    return diffs.reduce((index, diff, currentIndex) => (
+        diff < diffs[index] ? currentIndex : index
+    ), 0);
+};
+
+// NRZI код (Non Return to Zero Invertive) — один из способов линейного кодирования. Обладает двумя уровнями сигнала и используется для передачи битовых последовательностей, содержащих только 0 и 1. NRZI применяется, например, в оптических кабелях, где устойчиво распознаются только два состояния сигнала — свет и темнота.
+//
+//     Принцип кодирования
+// При передаче логического нуля на вход кодирующего устройства передается потенциал, установленный на предыдущем такте (то есть состояние потенциала не меняется), а при передаче логической единицы потенциал инвертируется на противоположный.
+//
+//     nrzi
+//
+// solution.js
+// Реализуйте и экспортируйте по умолчанию функцию, которая принимает строку в виде графического представления линейного сигнала и возвращает строку с бинарным кодом. Внимательно изучите примеры.
+//
+//     Примеры:
+// const signal1 = '_|¯|____|¯|__|¯¯¯';
+// nrzi(signal1); // '011000110100'
+//
+// const signal2 = '|¯|___|¯¯¯¯¯|___|¯|_|¯';
+// nrzi(signal2); // '110010000100111'
+//
+// const signal3 = '¯|___|¯¯¯¯¯|___|¯|_|¯';
+// nrzi(signal3); // '010010000100111'
+//
+// const signal4 = '';
+// nrzi(signal4); // ''
+//
+// const signal5 = '|';
+// nrzi(signal5); // ''
+// Подсказки
+// Символ | в строке указывает на переключение сигнала и означает, что уровень сигнала в следующем такте будет изменён на противоположный по сравнению с предыдущим.
+
+
+// @ts-check
+
+
+// Мое
+
+
+// BEGIN (write your solution here)
+export default (signalString) => {
+    if (signalString.length <= 1) {
+        return '';
+    }
+    const resultSignalString = [];
+    if (signalString[0] === '|') {
+        resultSignalString.push('1');
+    } else {
+        resultSignalString.push('0');
+    }
+    const sortSignalString = signalString.split('').filter((element) => element !== '|');
+    const binaryString = sortSignalString.map((el, index) => {
+        if (sortSignalString[index + 1]) {
+            return el === sortSignalString[index + 1] ? '0' : '1';
+        }
+        return '';
+    });
+    resultSignalString.push(binaryString.join(''));
+    return resultSignalString.join('');
+};
+// END
+
+// учителя
+
+// @ts-check
+
+// BEGIN
+export default (str) => str
+    .split('')
+    .map((e, i, arr) => {
+        if (e === '|') return '';
+        return arr[i - 1] === '|' ? 1 : 0;
+    })
+    .join('');
+// END
+
+// Для задания цветов в HTML и CSS используются числа в шестнадцатеричной системе счисления. Чтобы не возникало путаницы в определении системы счисления, перед шестнадцатеричным числом ставят символ решетки #, например, #135278. Обозначение цвета (rrggbb) разбивается на три составляющие, где первые два символа обозначают красную компоненту цвета, два средних — зеленую, а два последних — синюю. Таким образом каждый из трех цветов — красный, зеленый и синий — может принимать значения от 00 до FF в шестнадцатеричной системе исчисления.
+//
+//     solution.js
+// При работе с цветами часто нужно получить отдельные значения красного, зеленого и синего (RGB) компонентов цвета в десятичной системе исчисления и наоборот. Реализуйте и экспортируйте функции rgbToHex() и hexToRgb(), которые возвращают соответствующие представление цвета.
+//
+//     Примеры
+// hexToRgb('#24ab00'); // { r: 36, g: 171, b: 0 }
+//
+// rgbToHex(36, 171, 0); // '#24ab00'
+// Подсказки
+// Вам может понадобится функция chunk из библиотеки lodash.
+//     Используйте функцию parseInt() для перевода строки в необходимую систему счисления
+// Изучите возможности метода toString() для числа, рассмотрите примеры
+// Дополнительно можно использовать метод padStart()
+
+// мое
+
+// @ts-check
+
+import chunk from 'lodash/chunk.js';
+
+// BEGIN (write your solution here)
+const rgbToHex = (r, g, b) => `#${[r, g, b].map((el) => (el.toString(16)).padStart(2, '0')).join('')}`;
+
+const hexToRgb = (color) => {
+    const [r, g, b] = chunk(color.slice(1), 2)
+        .map((el) => el.join(''))
+        .map((el) => parseInt(el, 16));
+    return { r, g, b };
+};
+
+export { rgbToHex, hexToRgb };
+// END
+
+
+// учителя
+
+// @ts-check
+
+import chunk from 'lodash/chunk.js';
+
+// BEGIN
+export const rgbToHex = (r, g, b) => {
+    const hex = [r, g, b]
+        .map((channel) => channel.toString(16).padStart(2, '0'))
+        .join('');
+    return `#${hex}`;
+};
+
+export const hexToRgb = (hex) => {
+    const [r, g, b] = chunk(hex.slice(1), 2)
+        .map((channel) => channel.join(''))
+        .map((channel) => parseInt(channel, 16));
+    return { r, g, b };
+};
+// END
