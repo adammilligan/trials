@@ -1683,20 +1683,120 @@ export { rgbToHex, hexToRgb };
 
 // @ts-check
 
-import chunk from 'lodash/chunk.js';
+// import chunk from 'lodash/chunk.js';
+//
+// // BEGIN
+// export const rgbToHex = (r, g, b) => {
+//     const hex = [r, g, b]
+//         .map((channel) => channel.toString(16).padStart(2, '0'))
+//         .join('');
+//     return `#${hex}`;
+// };
+//
+// export const hexToRgb = (hex) => {
+//     const [r, g, b] = chunk(hex.slice(1), 2)
+//         .map((channel) => channel.join(''))
+//         .map((channel) => parseInt(channel, 16));
+//     return { r, g, b };
+// };
+// // END
+//
+// Игральная кость - шестигранный кубик, который бросается несколько раз. Гистограмма - это графическое представление данных в виде столбцов или колонок.
+//
+//     histogram.js
+// Реализуйте и экспортируйте по умолчанию функцию, которая выводит на экран горизонтальную гистограмму. Функция принимает на вход количество бросков кубика и функцию, которая имитирует бросок игральной кости (её реализовывать не нужно). Вызов этой функции генерирует значение от 1 до 6, что соответствует одной из граней игральной кости.
+//
+//     Гистограмма содержит строки, каждой из которых соответствует грань игральной кости и количество выпадений этой грани. Результаты отображаются графически (с помощью символов #) и в виде числового значения, за исключением случаев, когда количество равно 0 (нулю).
+//
+//     Примеры
+// import play from '../histogram.js';
+//
+// play(100, rollDie);
+// // => 1|####################### 23
+// //    2|################## 18
+// //    3|############# 13
+// //    4|#################### 20
+// //    5|############ 12
+// //    6|############## 14
+//
+// play(13, rollDie);
+// // => 1|
+// //    2|## 2
+// //    3|# 1
+// //    4|## 2
+// //    5|#### 4
+// //    6|#### 4
+
+
+// @ts-check
+/* eslint-disable no-console */
+
+import _ from 'lodash';
 
 // BEGIN
-export const rgbToHex = (r, g, b) => {
-    const hex = [r, g, b]
-        .map((channel) => channel.toString(16).padStart(2, '0'))
-        .join('');
-    return `#${hex}`;
-};
+export default (roundsCount, rollDie) => {
+    const bar = '#';
+    const numbers = _.times(roundsCount, rollDie);
+    const sides = _.range(1, 7);
 
-export const hexToRgb = (hex) => {
-    const [r, g, b] = chunk(hex.slice(1), 2)
-        .map((channel) => channel.join(''))
-        .map((channel) => parseInt(channel, 16));
-    return { r, g, b };
+    const lines = sides.map((side) => {
+        const count = numbers.filter((number) => number === side).length;
+        const displayCount = count !== 0 ? ` ${count}` : '';
+        return `${side}|${bar.repeat(count)}${displayCount}`;
+    });
+    const str = lines.join('\n');
+
+    console.log(str);
 };
 // END
+
+
+
+const createCountdown = (num) => {
+    let result = num;
+
+    const countdownFrom = () => {
+        if(result === 0) {
+            return 0;
+        };
+
+        let temp = result
+        result -= 1;
+
+        return temp;
+    }
+
+    return countdownFrom;
+};
+
+const sumExcept = (arr, start, dif) => {
+    let index;
+    let step;
+    const round = (number) => Math.round(number);
+    const abs = (number) => Math.abs(number);
+    let result = 0;
+    if (start >= arr.length) {
+        for (const el of arr) {
+            result += el;
+        }
+    }
+    if (start !== round(start) || start !== abs(start) || start === 0) {
+        index = 0;
+    } else {
+        index = start -1;
+    }
+    if (dif !== round(dif) || dif !== abs(dif) || dif === 0) {
+        step = 0;
+        return result = arr[index];
+    } else {
+        step = dif +1;
+    }
+    for (let i = index; i < arr.length; i += step ) {
+        if (arr[i] === abs(arr[i]) && arr[i] === round(arr[i])){
+            result += arr[i];
+        } else {
+            result +=0;
+        }
+    }
+    return result;
+};
