@@ -1800,3 +1800,94 @@ const sumExcept = (arr, start, dif) => {
     }
     return result;
 };
+
+// tests/set.test.js
+// Напишите тесты для функции set(obj, path, value) возвращающей объект, в котором она изменяет (или добавляет) значение по указанному пути. Функция мутирует объект.
+//
+//     const object = { a: [{ b: { c: 3 } }] };
+//
+// set(object, 'a[0].b.c', 4);
+// console.log(object.a[0].b.c); // => 4
+//
+// set(object, ['x', '0', 'y', 'z'], 5);
+// console.log(object.x[0].y.z); // => 5
+// Подсказки
+// Переиспользуйте объект данных
+// Тесты не должны зависеть друг от друга
+// Помните о том, что неверная реализация функции set() может возвращать объект с неправильной структурой
+// _.set
+
+
+// мое
+// @ts-check
+
+import _ from 'lodash';
+import getFunction from '../functions.js';
+
+const set = getFunction();
+
+// BEGIN (write your solution here)
+let object;
+
+beforeEach(() => {
+    object = { a: [{ b: { c: 3 } }] };
+});
+
+test('first case', () => {
+    expect(set(_.cloneDeep(object), 'a[0].b.c', 4)).toStrictEqual(_.set(object, 'a[0].b.c', 4));
+});
+
+test('second case', () => {
+    expect(set(_.cloneDeep(object), ['x', '0', 'y', 'z'], 5)).toStrictEqual(_.set(_.cloneDeep(object), ['x', '0', 'y', 'z'], 5));
+});
+
+test('true case', () => {
+    expect(set(object, 'a[0].b.c')).toStrictEqual(_.set(object, 'a[0].b.c'));
+});
+// END
+
+// учителя
+
+// @ts-check
+
+import _ from 'lodash';
+
+import getFunction from '../functions.js';
+
+const set = getFunction();
+
+// BEGIN
+let data;
+let dataCopy;
+
+beforeEach(() => {
+    data = {
+        a: [
+            {
+                b: {
+                    c: 3,
+                },
+            },
+        ],
+    };
+    dataCopy = _.cloneDeep(data);
+});
+
+test('plain set', () => {
+    set(data, 'a', 'value');
+    dataCopy.a = 'value';
+    expect(data).toEqual(dataCopy);
+});
+
+test('nested set', () => {
+    set(data, 'a[0].b.c', true);
+    dataCopy.a[0].b.c = true;
+    expect(data).toEqual(dataCopy);
+});
+
+test('set new property', () => {
+    set(data, 'a[0].b.d', false);
+    dataCopy.a[0].b.d = false;
+    expect(data).toEqual(dataCopy);
+});
+// END
