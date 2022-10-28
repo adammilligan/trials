@@ -2043,3 +2043,205 @@ const genDiff = (data1, data2) => {
 
 export default genDiff;
 // END
+
+// Для записи цифр римляне использовали буквы латинского алфафита: I, V, X, L, C, D, M. Например:
+//
+// 1 обозначалась с помощью буквы I
+// 10 с помощью Х
+// 7 с помощью VII
+// Число 2020 в римской записи — это MMXX (2000 = MM, 20 = XX).
+//
+//     solution.js
+// Реализуйте и экспортируйте функцию toRoman(), которая переводит арабские числа в римские. Функция принимает на вход целое число в диапазоне от 1 до 3000, а возвращает строку с римским представлением этого числа.
+//
+//     Реализуйте и экспортируйте функцию toArabic(), которая переводит число в римской записи в число, записанное арабскими цифрами. Если переданное римское число не корректно, то функция должна вернуть значение false.
+//
+//     Примеры
+// toRoman(1);
+// // 'I'
+// toRoman(59);
+// // 'LIX'
+// toRoman(3000);
+// // 'MMM'
+//
+// toArabic('I');
+// // 1
+// toArabic('LIX');
+// // 59
+// toArabic('MMM');
+// // 3000
+//
+// toArabic('IIII');
+// // false
+// toArabic('VX');
+// // false
+
+
+// мое
+
+// @ts-check
+/* eslint no-restricted-syntax: [off, ForOfStatement] */
+
+// BEGIN (write your solution here)
+const toRoman = (arabicNumber) => {
+    const result = [];
+    const units = {
+        1: 'I',
+        2: 'II',
+        3: 'III',
+        4: 'IV',
+        5: 'V',
+        6: 'VI',
+        7: 'VII',
+        8: 'VIII',
+        9: 'IX',
+    };
+    const dozens = {
+        1: 'X',
+        2: 'XX',
+        3: 'XXX',
+        4: 'XL',
+        5: 'L',
+        6: 'LX',
+        7: 'LXX',
+        8: 'LXXX',
+        9: 'XC',
+    };
+    const hundreds = {
+        1: 'C',
+        2: 'CC',
+        3: 'CCC',
+        4: 'CD',
+        5: 'D',
+        6: 'DC',
+        7: 'DCC',
+        8: 'DCCC',
+        9: 'CM',
+    };
+    const thousands = {
+        1: 'M',
+        2: 'MM',
+        3: 'MMM',
+    };
+    const arabicString = arabicNumber.toString();
+    const arabicArr = arabicString.split('');
+    if (arabicArr.length === 4) {
+        result.push(thousands[arabicArr[0]]);
+        result.push(hundreds[arabicArr[1]]);
+        result.push(dozens[arabicArr[2]]);
+        result.push(units[arabicArr[3]]);
+    } else if (arabicArr.length === 3) {
+        result.push(hundreds[arabicArr[0]]);
+        result.push(dozens[arabicArr[1]]);
+        result.push(units[arabicArr[2]]);
+    } else if (arabicArr.length === 2) {
+        result.push(dozens[arabicArr[0]]);
+        result.push(units[arabicArr[1]]);
+    } else if (arabicArr.length === 1) {
+        result.push(units[arabicArr[0]]);
+    }
+    return result.join('');
+};
+
+const toArabic = (romainNumber) => {
+    if (romainNumber.includes('IIII')
+        || romainNumber.includes('VX')) {
+        return false;
+    }
+    const romainKey = {
+        I: '1',
+        V: '5',
+        X: '10',
+        L: '50',
+        C: '100',
+        D: '500',
+        M: '1000',
+    };
+    let result = 0;
+    const romainArr = romainNumber.split('');
+    for (let i = 0; i < romainArr.length; i += 1) {
+        const nextI = romainArr[i + 1];
+        const thisI = romainArr[i];
+        if (thisI === 'I') {
+            if (nextI === 'V' || nextI === 'X') {
+                result -= Number(romainKey[thisI]);
+            } else {
+                result += Number(romainKey[thisI]);
+            }
+        } else if (thisI === 'X') {
+            if (nextI === 'L' || nextI === 'C') {
+                result -= Number(romainKey[thisI]);
+            } else {
+                result += Number(romainKey[thisI]);
+            }
+        } else if (thisI === 'C') {
+            if (nextI === 'D' || nextI === 'M') {
+                result -= Number(romainKey[thisI]);
+            } else {
+                result += Number(romainKey[thisI]);
+            }
+        } else {
+            result += Number(romainKey[thisI]);
+        }
+    }
+    return result;
+};
+
+export { toArabic, toRoman };
+// END
+
+
+// учителя
+
+// @ts-check
+/* eslint no-restricted-syntax: [off, ForOfStatement] */
+
+// BEGIN
+const numerals = {
+    M: 1000,
+    CM: 900,
+    D: 500,
+    CD: 400,
+    C: 100,
+    XC: 90,
+    L: 50,
+    XL: 40,
+    X: 10,
+    IX: 9,
+    V: 5,
+    IV: 4,
+    I: 1,
+};
+
+const sortedNumerals = Object.entries(numerals)
+    .sort(([, arabic1], [, arabic2]) => Math.sign(arabic2 - arabic1));
+
+export const toRoman = (number) => {
+    let digit = number;
+    const result = [];
+    for (const [roman, arabic] of sortedNumerals) {
+        const repetitionsCount = Math.floor(digit / arabic);
+        digit -= repetitionsCount * arabic;
+        result.push(roman.repeat(repetitionsCount));
+    }
+
+    return result.join('');
+};
+
+export const toArabic = (romanNumber) => {
+    let result = 0;
+    let currentLine = romanNumber;
+    for (const [roman, arabic] of sortedNumerals) {
+        while (currentLine.indexOf(roman) === 0) {
+            result += arabic;
+            currentLine = currentLine.slice(roman.length);
+        }
+    }
+
+    if (toRoman(result) !== romanNumber) {
+        return false;
+    }
+
+    return result;
+};
+// END
