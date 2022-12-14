@@ -2446,3 +2446,466 @@ const convert = (tree) => tree.reduce((acc, node) => {
 
 export default convert;
 // END
+//
+
+// В программировании иногда приходится иметь дело с деньгами. В отличие от большинства других значений, деньги могут существовать в разных валютах, которые конвертируются друг в друга по определенным ставкам (они меняются со временем!). Из-за этого, часто, недостаточно просто хранить количество денег, нужно хранить и их валюту.
+//
+//   Достаточно давно разработчики заметили, что работа с деньгами происходит во всех проектах примерно одинаково. Это привело к созданию определенного подхода (шаблона проектирования) при работе с деньгами. В этом задании мы частично реализуем его.
+//
+//   Money.js
+// Реализуйте и экспортируйте по умолчанию абстракцию "Деньги". Она знает о валюте денег, позволяет их конвертировать в другие валюты, выполнять арифметические операции и форматировать вывод. Список методов:
+//
+//   Money(value, currency = 'usd') – создает объект-деньги.
+// Money.prototype.getValue() – возвращает стоимость в виде числа
+// Money.prototype.getCurrency() – возвращает валюту денег
+// Money.prototype.exchangeTo(currency) – возвращает новый объект-деньги, где значение конвертировано в указанную валюту
+// Money.prototype.add(money) – возвращает новый объект-деньги, который представляет из себя сумму исходных и переданных денег, в валюте исходных денег (внутри возможна конвертация если валюты не совпадают)
+// Money.prototype.format() – возвращает локализованное представление денег удобное для вывода
+// const money1 = new Money(100);
+//
+// // Возвращает значение
+// money1.getValue(); // 100
+// money1.getCurrency(); // 'usd'
+//
+// // Конвертирует в указанную валюту и возвращает новое значение
+// money1.exchangeTo('eur').getValue(); // 70
+//
+// const money2 = new Money(200, 'eur');
+// money2.getValue(); // 200
+// const money3 = money2.add(money1);
+// money3.getValue(); // 270
+// const money4 = money3.add(money1);
+// money4.getValue(); // 340
+//
+// money1.format(); // "$100.00"
+// money2.format(); // "€200.00"
+//
+// const money5 = new Money(10000);
+// money5.format(); // "$10,000.00"
+// Наша реализация поддерживает только две валюты: usd и eur без возможности расширения. Коэффициенты конверсии:
+//
+//   usd -> eur = 0.7
+// eur -> usd = 1.2
+// Подсказки
+// Number.prototype.toLocaleString() – умеет форматировать вывод денег в нужной локали. Если передать undefined первым параметром, то установится текущая локаль. Пример работы метода:
+//   (4000).toLocaleString(undefined, { style: 'currency', currency: 'gbp' });
+// // => 4,000.00 £
+// Пример реализации денег на js
+
+// мое
+// @ts-check
+// BEGIN (write your solution here)
+function Money(value, currency = 'usd') {
+    this.value = value;
+    this.currency = currency;
+}
+
+Money.prototype.getValue = function getValue() {
+    return this.value;
+};
+
+Money.prototype.getCurrency = function getCurrency() {
+    return this.currency;
+};
+
+Money.prototype.exchangeTo = function exchangeTo(currency) {
+    if (currency === this.getCurrency()) {
+        return new Money(this.getValue(), currency);
+    }
+    if (currency === 'eur') {
+        return new Money((this.getValue() * 0.7), currency);
+    }
+    return new Money((this.getValue() * 1.2), currency);
+};
+
+Money.prototype.add = function add(money) {
+    const currency = this.getCurrency();
+    const convertedMoney = money.exchangeTo(currency);
+    const additionalValue = convertedMoney.getValue();
+    return new Money(this.getValue() + additionalValue, currency);
+};
+
+Money.prototype.format = function format() {
+    const currency = this.getCurrency();
+
+    if (currency === 'eur') {
+        return this.getValue().toLocaleString(undefined, { style: 'currency', currency });
+    }
+
+    return this.getValue().toLocaleString(undefined, { style: 'currency', currency });
+};
+
+export default Money;
+// END
+
+
+// учителя
+
+// @ts-check
+// BEGIN
+const rates = {
+    usd: {
+        eur: 0.7,
+    },
+    eur: {
+        usd: 1.2,
+    },
+};
+
+export default function Money(value, currency = 'usd') {
+    this.value = value;
+    this.currency = currency;
+}
+
+Money.prototype.format = function format() {
+    // bad design (pass undefined to the function), but it is js
+    return this.getValue().toLocaleString(undefined, { style: 'currency', currency: this.getCurrency() });
+};
+
+Money.prototype.getValue = function getValue() {
+    return this.value;
+};
+
+Money.prototype.getCurrency = function getCurrency() {
+    return this.currency;
+};
+
+Money.prototype.exchangeTo = function exchangeTo(newCurrency) {
+    const currency = this.getCurrency();
+    const currentValue = this.getValue();
+    if (currency === newCurrency) {
+        return new Money(currentValue, currency);
+    }
+    const newValue = currentValue * rates[currency][newCurrency];
+    return new Money(newValue, newCurrency);
+};
+
+Money.prototype.add = function add(money) {
+    const currency = this.getCurrency();
+    const convertedMoney = money.exchangeTo(currency);
+    const additionalValue = convertedMoney.getValue();
+    return new Money(this.getValue() + additionalValue, currency);
+};
+// END
+//
+//
+// Это задание хоть и небольшое, но хитрое, его иногда задают на собеседованиях. Если не получится его решить сразу – не сдавайтесь. Оно стоит того, чтобы разобраться. Посмотрите обсуждения, там будет множество подсказок в других формулировках.
+//
+//   magic.js
+// Реализуйте и экспортируйте по умолчанию функцию, которая работает следующим образом:
+//
+//   Принимает на вход любое количество аргументов и возвращает функцию, которая, в свою очередь, принимает на вход любое количество аргументов и так до бесконечности (привет, рекурсия ;)).
+// Аргументами могут быть только числа.
+//   Результат вызова этой функции при проверке на равенство должен быть равен сумме всех аргументов всех подфункций.
+//   import magic from './magic.js';
+//
+// magic() == 0; // true
+// magic(5, 2, -8) == -1; // true
+// magic(1, 2)(3, 4, 5)(6)(7, 10) == 38; // true
+// magic(4, 8, 1, -1, -8)(3)(-3)(7, 2) == 13; // true
+// Подсказки
+// Объекты в JS по умолчанию имеют метод valueOf(), который вызывается автоматически в тех местах, где требуется преобразование к числовому значению (контекст арифметических операций и операций нестрогого сравнения). В ситуации выше, во время сравнения, JS вызовет valueOf() для нашей функции. Этим можно воспользоваться для того, чтобы возвращать сумму через valueOf().
+//
+//   const obj = {}
+// obj + 3; // '[object Object]3'
+// obj.valueOf = () => 3;
+// obj + 7; // 10
+// Алгоритм
+// Для решения задачи вам понадобится создать внутри ещё одну функцию.
+//   Возврат функции из функции позволит сохранять результат предыдущих вычислений.
+//   Функции — это объекты, используйте данную особенность. Она позволит отдавать результат вычислений только в нужный момент.
+//   Внимательно изучите теорию и примените подходы из неё для этой практики.
+
+// мое
+
+// @ts-check
+// BEGIN (write your solution here)
+const magic = (...args) => {
+    const sum = args.reduce((acc, x) => acc + x, 0);
+    const result = (...newArgs) => magic(sum, ...newArgs);
+    result.valueOf = () => sum;
+    return result;
+};
+
+export default magic;
+// END
+
+//
+// Для работы с текстом в вебе бывает полезна функция truncate(), которая обрезает слишком длинный текст и ставит в конце многоточие:
+//
+//   truncate('long text', { length: 3 }); // lon...
+// solution.js
+// Реализуйте в классе Truncater конструктор и метод truncate(). Метод принимает текст и следующие опции:
+//
+//   separator - символ, заменяющий обрезанную часть строки
+// length - максимальная длина исходной строки. Если строка короче, чем эта опция, то возвращается исходная строка.
+//   Конфигурацию по умолчанию можно переопределить через конструктор класса и вторым аргументом метода truncate(). Оба способа можно комбинировать.
+//
+//   const truncater = new Truncater();
+// truncater.truncate('one two'); // 'one two'
+// truncater.truncate('one two', { 'length': 6 }); // 'one tw...'
+//
+// const truncater = new Truncater({ 'length': 6 });
+// truncater.truncate('one two', { 'separator': '.' }); // 'one tw.'
+// truncater.truncate('one two', { 'length': '3' }); // 'one...'
+// Подсказки
+// Опции по умолчанию заданы, как статическое свойство класса. Обратите на это внимание при объединении исходных опций с пользовательскими.
+
+// мое
+
+export default class Truncater {
+    static defaultOptions = {
+        separator: '...',
+        length: 200,
+    };
+
+    // BEGIN (write your solution here)
+    constructor(options = {}) {
+        this.options = { ...this.constructor.defaultOptions, ...options };
+    }
+
+    truncate(text, options = {}) {
+        const { length, separator } = { ...this.options, ...options };
+        if (text.length > length) {
+            return `${text.slice(0, length)}${separator}`;
+        }
+        return text;
+    }
+    // END
+}
+
+
+// учителя 
+
+export default class Truncater {
+    static defaultOptions = {
+        separator: '...',
+        length: 200,
+    };
+
+    // BEGIN
+    constructor(options = {}) {
+        this.options = { ...this.constructor.defaultOptions, ...options };
+    }
+
+    truncate(text, options = {}) {
+        const { length, separator } = { ...this.options, ...options };
+        return (text.length <= length) ? text : text.substring(0, length).concat(separator);
+    }
+    // END
+}
+
+
+// Эту задачу можно решить огромным числом способов. Почти наверняка ваш способ будет не такой, как решение учителя.
+//
+//   Мы не даём никаких подсказок насчет того, какие функции нужно использовать. Как минимум вы знаете главную тройку map, filter и reduce.
+//
+//   solution.js
+// Реализуйте и экспортируйте по умолчанию функцию normalize() которая принимает на вход список городов и стран, нормализует их имена, сортирует города и группирует их по стране.
+//
+//   import normalize from './solution.js';
+//
+// const countries = [
+//     { name: 'Miami', country: 'usa' },
+//     { name: 'samarA', country: '  ruSsiA' },
+//     { name: 'Moscow ', country: ' Russia' },
+// ];
+//
+// normalize(countries);
+// // {
+// //   russia: [
+// //     'moscow',
+// //     'samara',
+// //   ],
+// //   usa: [
+// //     'miami',
+// //   ],
+// // }
+// Подсказки
+// Сигналы
+// Получить только уникальные значения можно через специальный объект Set
+// Урок Set
+
+// мое
+// BEGIN (write your solution here)
+const normalize = (col) => {
+    const sortColl = col.map(({ name, country } = {}) => ({
+        name: name.toLowerCase().trim(),
+        country: country.toLowerCase().trim(),
+    }));
+    const normColl = sortColl.reduce((acc, object) => {
+        if (Object.hasOwn(acc, object.country)) {
+            if (!acc[object.country].includes(object.name)) {
+                acc[object.country].push(object.name);
+                acc[object.country].sort();
+            }
+        } else {
+            acc[object.country] = [object.name];
+        }
+        return acc;
+    }, {});
+    return normColl;
+};
+
+export default normalize;
+// END
+
+
+// учителя
+// BEGIN
+export default (data) => data
+  .map(({ name, country }) => ({ city: name.toLowerCase(), country: country.toLowerCase() }))
+  .map(({ city, country }) => ({ city: city.trim(), country: country.trim() }))
+  .map(({ city, country }) => [country, city])
+  .sort() // sort countries and cities
+  .reduce((acc, [country, city]) => {
+      const citiesAcc = acc[country] ?? [];
+      const cities = citiesAcc.concat(city);
+      const uniqueCities = new Set(cities);
+      return { ...acc, [country]: [...uniqueCities] };
+  }, {});
+// END
+
+// JavaScript долгое время не поддерживал приватных свойств и методов. Для них появилось соглашение об именовании с нижнего подчёркивания _, чтобы предотвратить доступ ко внутренностям объекта в обход интерфейса. Но сама возможность прямого доступа остаётся. Нам предстоит разработать обёртку над объектом, защищающую его приватные свойства от прямого доступа.
+//
+//   protect.js
+// Реализуйте и экспортируйте по умолчанию функцию, которая принимает объект и позволяет обращаться только к "публичным" свойствам и методам. При попытке прочитать или перезаписать приватное или несуществующее свойство должно выбрасываться исключение.
+//
+//   import protect from '../protect.js';
+//
+// class Course {
+//     constructor(name) {
+//         this._name = name;
+//     }
+//
+//     getName() {
+//         return this._name;
+//     }
+// }
+//
+// const course = new Course('Object-oriented design');
+// const protectedCourse = protect(course);
+//
+// course.getName(); // "Object-oriented design"
+// protectedCourse.getName(); // "Object-oriented design"
+// course._name; // "Object-oriented design"
+// course._nonExists; // undefined
+//
+// protectedCourse._name; // Error
+// protectedCourse._name = 'OOD'; // Error
+// protectedCourse._nonExists; // Error
+// В реализации используйте Proxy.
+//
+//   Подсказки
+// Чтобы избежать потери контекста для методов, используйте связывание через bind.
+//   Определить, что по ключу возвращается метод можно через оператор typeof.
+// Документация обработчика set
+
+/* eslint-disable no-param-reassign */
+
+// BEGIN (write your solution here)
+const validateProperty = (target, name) => {
+    if (!(name in target)) {
+        throw new Error(`Property "${name}" doesn't exist`);
+    }
+    if (name.startsWith('_')) {
+        throw new Error(`Property "${name}" is protected`);
+    }
+};
+
+export default (obj) => {
+    const handlers = {
+        set: (target, prop, value) => {
+            validateProperty(target, prop);
+            target[prop] = value;
+            return true;
+        },
+        get: (target, prop) => {
+            validateProperty(target, prop);
+            const property = target[prop];
+            return (typeof property === 'function') ? property.bind(obj) : property;
+        },
+    };
+    const protectedObj = new Proxy(obj, handlers);
+    return protectedObj;
+};
+// END
+
+
+
+// dates.js
+// Реализуйте и экспортируйте по умолчанию функцию, которая переводит входные данные в удобный для построения графика формат.
+//
+//   На вход эта функция принимает три аргумента: массив данных; дата начала периода; дата конца периода. Данные представлены в формате объекта вида { value: 14, date: '02.08.2018' }, а даты диапазона в формате 'yyyy-MM-dd'.
+//
+//   Диапазон дат задаёт размер выходного массива, который должна сгенерить реализуемая функция. Правила формирования итогового массива:
+//
+//   он заполняется записями по всем дням из диапазона begin - end.
+//   если во входном массиве нет данных для какого-то дня из диапазона, то в свойство value записи этого дня установить значение 0.
+// import buildRange from './dates.js';
+//
+// const dates = [
+//     { value: 14, date: '02.08.2018' },
+//     { value: 43, date: '03.08.2018' },
+// ];
+// const beginDate = '2018-08-01';
+// const endDate = '2018-08-04';
+//
+// buildRange(dates, beginDate, endDate);
+// // [
+// //   { value: 0, date: '01.08.2018' },
+// //   { value: 14, date: '02.08.2018' },
+// //   { value: 43, date: '03.08.2018' },
+// //   { value: 0, date: '04.08.2018' },
+// // ]
+// Подсказки
+// Документация по функциям для работы с датами:
+//
+//   https://date-fns.org/v2.16.1/docs/eachDayOfInterval
+//     https://date-fns.org/v2.16.1/docs/format
+
+
+// мое
+import eachDayOfInterval from 'date-fns/eachDayOfInterval';
+import format from 'date-fns/format';
+// import has from 'lodash/has';
+
+// BEGIN (write your solution here)
+export default (datesArray, beginDate, endDate) => {
+    const dateList = eachDayOfInterval({
+        start: new Date(beginDate),
+        end: new Date(endDate),
+    });
+    return dateList
+      .map((el) => format(new Date(el), 'dd.MM.yyyy'))
+      .map((date) => {
+          const findedItem = datesArray.find((item) => {
+              return item.date === date;
+          });
+          return {
+              value: findedItem ? findedItem.value : 0,
+              date,
+          };
+      });
+};
+
+
+
+// учителя
+import eachDayOfInterval from 'date-fns/eachDayOfInterval';
+import format from 'date-fns/format';
+import has from 'lodash/has';
+
+// BEGIN
+const buildRange = (dates, start, end) => {
+    const valuesByDate = dates.reduce((acc, { value, date }) => ({ ...acc, [date]: value }), {});
+    const period = eachDayOfInterval({ start: new Date(start), end: new Date(end) });
+    return period.map((date) => {
+        const formattedDate = format(date, 'dd.MM.yyyy');
+        const value = has(valuesByDate, formattedDate) ? valuesByDate[formattedDate] : 0;
+        return { value, date: formattedDate };
+    });
+};
+
+export default buildRange;
+// END
