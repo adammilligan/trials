@@ -294,27 +294,39 @@ export default (num) => {
 
 const openingSymbols = ['(', '[', '{', '<'];
 const closingSymbols = [')', ']', '}', '>'];
+// набор наших скобок 
 
-// BEGIN (write your solution here)
 export default (col) => {
     const stack = [];
+    // создали результрующий массив
     for (const symbol of col) {
+        //проходим по коллекции
         if (openingSymbols.includes(symbol)) {
+            // если символ является открывающей скобкой - добавляем в резуьтат
             stack.push(symbol);
         } else {
+            // если скобки нет в коллекции открывающихся, то мы ищем ее индекс в коллекции закрывающих скобок
             const index = closingSymbols.indexOf(symbol);
+            // если индекс внутри коллекции - возвращаем соответствующую этому индексу открывающую скобку, иначе false 
             const openedSymbol = index !== -1 ? openingSymbols[index] : false;
+            // если false, то прерываем и возвращаем false 
             if (!openedSymbol) return false;
+            // сравниваем эту скобку с последней, которая лежит в нашей коллекции
             const last = stack[stack.length - 1];
             if (last === openedSymbol) {
+                // если они одинаковые, то мы удаляем это последнее значение из массива .pop()
                 if (!stack.pop()) {
+                    // если удалять нечего, то возвращаем false
                     return false;
                 }
             } else {
+                // если скобки не одинаковые, то тоже возвращаем false
                 return false;
             }
         }
     }
+    // если у нас массив остался пустым, значит все скобки открылись и все закрылись, если не пустой, значит пар не зватило
+    // сравниваем длинну массива с нулем, вернется либо true либо false
     return stack.length === 0;
 };
 
@@ -2879,9 +2891,7 @@ export default (datesArray, beginDate, endDate) => {
     return dateList
       .map((el) => format(new Date(el), 'dd.MM.yyyy'))
       .map((date) => {
-          const findedItem = datesArray.find((item) => {
-              return item.date === date;
-          });
+          const findedItem = datesArray.find((item) => item.date === date);
           return {
               value: findedItem ? findedItem.value : 0,
               date,
@@ -2909,3 +2919,162 @@ const buildRange = (dates, start, end) => {
 
 export default buildRange;
 // END
+//
+// watcher.js
+// Реализуйте и экспортируйте по умолчанию асинхронную функцию, которая следит за изменением файла с заданной периодичностью. Функция должна возвращать идентификатор таймера, запущенного внутри.
+//
+//   Если файл был изменён со времени предыдущей проверки, то необходимо вызвать колбек. Если во время анализа файла (через fs.stat) произошла ошибка, то нужно остановить таймер и вызвать колбек, передав туда ошибку.
+//
+//   Отслеживание изменений файла должно начинаться с момента вызова функции. Параметры функции:
+//
+//   Путь до файла, который нужно отслеживать
+// Период отслеживания
+// Колбек, принимающий аргументом ошибку
+// import watch from './watcher.js';
+//
+// const id = watch(filepath, 500, (err) => {
+//     console.log('Wow!');
+// });
+//
+// setTimeout(() => fs.appendFileSync(filepath, 'ehu'), 700);
+// setTimeout(() => clearInterval(id), 5000); // остановить отслеживание через 5 секунд
+// Подсказки
+// stats.mtimeMs — время последнего изменения
+// Date.now() — текущая дата
+// clearInterval
+
+// @ts-check
+import fs from 'fs';
+
+// BEGIN
+export default (filepath, period, cb) => {
+    // фиксируем время последней проверки - момент запуска функции
+    let lastCheckTime = Date.now();
+    // функция проверки файла
+    const check = (timerId) => {
+        fs.stat(filepath, (err, stats) => {
+            // в случае ошибки отключаем таймер
+            // и отдаем в колбэк ошибку
+            if (err) {
+                clearInterval(timerId);
+                cb(err);
+                return;
+            }
+            // извлекаем время последней модификации файла
+            const { mtimeMs } = stats;
+            // если файл был модифицирован после запуска функции,
+            // вызываем колбэк и меняем время последней проверки
+            if (mtimeMs > lastCheckTime) {
+                cb(null);
+                lastCheckTime = mtimeMs;
+            }
+        });
+    };
+    // создаем таймер и передаем его id в функцию проверки файла
+    const timerId = setInterval(() => check(timerId), period);
+    return timerId;
+};
+// END
+
+//
+// src/prettify.js
+// Реализуйте и экспортируйте функцию по умолчанию, которая находит текст (дочерние текстовые узлы) внутри элемента <div> и оборачивает текст в параграф. Переводы строк и отступы изменяться не должны.
+//
+//   // <body>
+//   //   <p>Boom</p>
+//   //   text
+//   //   <div>Bam</div>
+//   // </body>
+//   prettify(document);
+// console.log(document.body.innerHTML);
+// // <body>
+// //   <p>Boom</p>
+// //   text
+// //   <div><p>Bam</p></div>
+// // </body>
+// Алгоритм
+// Выберите все нужные узлы по тегу
+// Обойдите каждый выбранный узел, найдите в его дочерних узлах (childNodes) текстовые узлы и замените их на новые узлы, содержащие тег <p>.
+// Подсказки
+// Очистка строки от пробельных символов: trim
+// Замена узлов node.replaceWith()
+// Проверка текстовых узлов: node instanceof Text
+
+export default (document) => {
+    const divs = [...document.getElementsByTagName('div')];
+
+    divs.forEach((div) => {
+        const textNodes = [...div.childNodes]
+          .filter((child) => child instanceof Text)
+          .filter((child) => child.textContent.trim() !== '');
+        textNodes.forEach((node) => {
+            const p = document.createElement('p');
+            p.textContent = node.textContent;
+            node.replaceWith(p);
+        });
+    });
+};
+
+
+// В Bootstrap есть компонент nav (Обязательно перейдите по ссылке и покликайте по нему). Один из вариантов этого компонента — это табы, которые переключаются по нажатию, без перезагрузки страницы.
+//
+// <nav>
+//     <div class="nav nav-tabs">
+//         <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button">Home</button>
+//         <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">Profile</button>
+//     </div>
+// </nav>
+// <div class="tab-content">
+//     <div class="tab-pane active" id="home">Home tab</div>
+//     <div class="tab-pane" id="profile">Profile tab</div>
+// </div>
+// По клику на таб происходит следующее:
+//
+//   Класс active снимается с текущего элемента меню и активного блока с данными
+// Класс active добавляется табу, по которому кликнули и соответствующему блоку с данными
+// Сопоставление таба и блока данных идёт по идентификатору, который прописывается в атрибут data-bs-target табов. По клику на таб, код должен извлечь id, найти соответствующий элемент и сделать его активным, не забыв при этом снять класс active с таба и блока, которые были активными до клика.
+//
+//   src/application.js
+// Реализуйте логику переключения табов.
+//
+//   Постройте свою логику так, чтобы она позволила использовать на одной странице любое количество компонентов nav.
+//
+//   Подсказки
+// В коде можно использовать глобальный объект document
+// Селектор по data элементам [data-toggle], например: document.querySelectorAll('h1[data-key]');
+// Получить необходимый data-атрибут можно через dataset
+// Постарайтесь не завязываться на конкретные идентификаторы и элементы
+// Если вы используете другой метод извлечения списка, например document.getElementsByClassName(), то обратите внимание, что он возвращает HTMLCollection, а не NodeList. HTMLCollection не поддерживает метод forEach(), однако вы можете привести такой список к массиву, например используя Array.from()
+// Переключение должно работать на любой реализации: с использованием button и на div
+
+export default () => {
+    // BEGIN (write your solution here)
+    const handle = (e, container) => {
+        const targetTab = e.target;
+        if (targetTab.classList.contains('active')) {
+            return;
+        }
+
+        const targetTabContentId = targetTab.dataset.bsTarget;
+        const targetTabContent = document.querySelector(targetTabContentId);
+
+        const activeTab = container.querySelector('.active');
+        const activeTabContentId = activeTab.dataset.bsTarget;
+        const activeTabContent = document.querySelector(activeTabContentId);
+
+        targetTab.classList.add('active');
+        targetTabContent.classList.add('active');
+
+        activeTab.classList.remove('active');
+        activeTabContent.classList.remove('active');
+    };
+
+    const navs = document.querySelectorAll('.nav');
+    navs.forEach((nav) => {
+        const tabs = nav.querySelectorAll('[data-bs-toggle]');
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', (event) => handle(event, nav));
+        });
+    });
+    // END
+};
