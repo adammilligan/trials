@@ -3170,3 +3170,167 @@ const app = async () => {
 
 export default app;
 // END
+
+
+
+// src/application.js
+// Реализуйте и экспортируйте функцию по умолчанию, которая активизирует фильтр на основе формы доступной в public/index.html. Изменение любого параметра должно сразу приводить к фильтрации. Ноутбуки, подходящие под фильтр, выводятся внутри <div class="result"></div> как список ul/li моделей (свойство model внутри объекта представляющего ноутбук). Полный список ноутбуков доступен в файле src/index.js.
+//
+//   Условия:
+//
+// Если фильтр пустой, то выводится все.
+//   Если под фильтр ничего не подходит, то список не выводится.
+//   Подсказки
+// Для отслеживания изменений текстовых инпутов используйте событие input. Для select - change.
+//   Для фильтрации товаров по выбранным фильтрам используйте метод массива every()
+// На старте фильтры не указаны, поэтому должен отрисовываться весь список
+
+
+// мое решение
+
+// @ts-check
+
+// BEGIN (write your solution here) (write your solution here)
+
+const compare = (state, value, defaultValue = '') => state === defaultValue || state === value;
+
+const valueInRange = (min, max, value) => {
+    if (!min && !max) {
+        return true;
+    }
+    if (!min) {
+        return value < max;
+    }
+    if (!max) {
+        return value > min;
+    }
+    return max >= value && min <= value;
+};
+
+const defaultState = {
+    processor: '', frequencyMin: '', memory: '', frequencyMax: '',
+};
+
+export default (coll) => {
+    const state = { ...defaultState };
+
+    const result = document.querySelector('.result');
+    const processor = document.querySelector('select[name="processor_eq"]');
+    const memory = document.querySelector('select[name="memory_eq"]');
+    const frequencyGte = document.querySelector('input[name="frequency_gte"]');
+    const frequencyLte = document.querySelector('input[name="frequency_lte"]');
+
+    const render = (list) => {
+        result.innerHTML = '';
+
+        const newItems = list.map((el) => {
+            if (compare(state.processor, el.processor)
+              && compare(state.memory, el.memory)
+              && valueInRange(state.frequencyMin, state.frequencyMax, el.frequency)) {
+                const li = document.createElement('li');
+                li.textContent = el.model;
+                return li;
+            }
+            return null;
+        }).filter(Boolean);
+
+        if (newItems.length) {
+            const ul = document.createElement('ul');
+
+            ul.append(...newItems);
+            result.append(ul);
+        }
+    };
+
+    render(coll);
+
+    processor.addEventListener('change', (e) => {
+        state.processor = e.target.value;
+        render(coll);
+    });
+    memory.addEventListener('change', (e) => {
+        if (e.target.value === '') {
+            state.memory = e.target.value;
+        } else {
+            state.memory = parseInt(e.target.value, 10);
+        }
+        render(coll);
+    });
+    frequencyGte.addEventListener('input', (e) => {
+        state.frequencyMin = parseInt(e.target.value, 10);
+        render(coll);
+    });
+    frequencyLte.addEventListener('input', (e) => {
+        state.frequencyMax = parseInt(e.target.value, 10);
+        render(coll);
+    });
+};
+// END
+
+
+// решение учителя
+// @ts-check
+
+// BEGIN (write your solution here)
+// Решение позволяет легко расширить приложение новыми фильтрами и типами проверок
+const predicates = {
+    eq: (value) => (el) => String(el) === String(value),
+    gte: (value) => (el) => (el) >= Number(value),
+    lte: (value) => (el) => (el) <= Number(value),
+};
+
+const inputsConfig = {
+    processor_eq: 'change',
+    memory_eq: 'change',
+    frequency_lte: 'input',
+    frequency_gte: 'input',
+};
+
+const filterItems = (items, query) => {
+    // Остаются только изменённые пользователем фильтры
+    const activeFilters = Object.entries(query).filter(([, filterValue]) => filterValue !== null);
+    // Фильтрация товаров: каждый товар должен удовлетворять каждому фильтру из списка
+    return items.filter((item) => activeFilters.every(([filterName, filterValue]) => {
+        const [propertyName, predicate] = filterName.split('_');
+        const match = predicates[predicate];
+        const itemProperty = item[propertyName];
+        return match(filterValue)(itemProperty);
+    }));
+};
+
+const render = (state) => {
+    const resultElement = document.querySelector('.result');
+    const filtered = filterItems(state.laptops, state.filter);
+
+    if (filtered.length === 0) {
+        resultElement.innerHTML = '';
+        return;
+    }
+    // элементы для вставки можно как создать через интерфейс document.createElement,
+    // так и собрать строку
+    const html = `<ul>${filtered.map((item) => `<li>${item.model}</li>`).join('')}</ul>`;
+    resultElement.innerHTML = html;
+};
+
+export default (laptops) => {
+    // state на уровне приложения
+    const state = {
+        laptops,
+        filter: {
+            processor_eq: null,
+            memory_eq: null,
+            frequency_lte: null,
+            frequency_gte: null,
+        },
+    };
+    // На каждое поле ввода вешается обработчик, изменяющий стейт и вызывающий отрисовку
+    Object.entries(inputsConfig).forEach(([inputName, eventName]) => {
+        const input = document.querySelector(`[name="${inputName}"]`);
+        input.addEventListener(eventName, ({ target }) => {
+            state.filter[inputName] = target.value === '' ? null : target.value;
+            render(state);
+        });
+    });
+    render(state);
+};
+// END
