@@ -1008,3 +1008,489 @@ export default () => {
   renderTasks(state, elements);
 };
 // END
+
+
+// MVC
+// on-change
+//
+// Бутстрап позволяет использовать списки для отображения контента при клике по элементу. В этом задании такие группы списков уже подготовлены, вам предстоит только добавить функционал переключения.
+//
+//   src/application.js
+// Реализуйте логику переключения табов для компонента list-group бутстрапа, используя архитектуру MVC.
+//
+//   Активный элемент списка получает класс active, а контент, соответствующий ему, получает классы active show
+//
+// <div class="row">
+//   <div class="col-4">
+//   <div class="list-group" id="list-tab" role="tablist">
+//   <a class="list-group-item list-group-item-action active" id="list-home-list" data-bs-toggle="list" href="#list-home" role="tab" aria-controls="list-home">Home</a>
+// <a class="list-group-item list-group-item-action" id="list-profile-list" data-bs-toggle="list" href="#list-profile" role="tab" aria-controls="list-profile">Profile</a>
+// </div>
+// </div>
+// <div class="col-8">
+//   <div class="tab-content" id="nav-tabContent">
+//     <div class="tab-pane fade show active" id="list-home" role="tabpanel" aria-labelledby="list-home-list">Home Content</div>
+//     <div class="tab-pane fade" id="list-profile" role="tabpanel" aria-labelledby="list-profile-list">Profile Content</div>
+//   </div>
+// </div>
+// </div>
+// Код должен работать даже в том случае, если на странице есть несколько компонентов list-group.
+//
+//   Подсказки
+// Пример работы: https://getbootstrap.com/docs/5.2/components/list-group/#javascript-behavior
+
+//учитель
+
+// @ts-check
+
+import onChange from 'on-change';
+
+// BEGIN
+export default () => {
+  // Model
+  const state = {
+    lists: {},
+  };
+
+  // View
+  const watchedState = onChange(state, (path, current, previous) => {
+    const currentTab = document.querySelector(`#${current}`);
+    const currentPanel = document.querySelector(`[aria-labelledby="${current}"]`);
+    const previousTab = document.querySelector(`#${previous}`);
+    const previousPanel = document.querySelector(`[aria-labelledby="${previous}"]`);
+
+    currentTab.classList.add('active');
+    currentPanel.classList.add('active', 'show');
+    previousTab.classList.remove('active');
+    previousPanel.classList.remove('active', 'show');
+  });
+
+  const lists = document.querySelectorAll('[role="tablist"]');
+
+  // Controller
+  lists.forEach((list) => {
+    const listId = list.id;
+    const activeTab = list.querySelector('[role="tab"].active');
+
+    state.lists[listId] = {
+      tabId: activeTab.id,
+    };
+
+    list.addEventListener('click', (e) => {
+      e.preventDefault();
+      watchedState.lists[listId].tabId = e.target.id;
+    });
+  });
+};
+// END
+
+// состояние форм
+
+// В этой задаче вам предстоит реализовать форму регистрации. Форма состоит из 4 полей (имя, email, пароль и его подтверждение). Начальный HTML доступен в public/index.html.
+//
+// Форма должна быть контролируемой. Во время набора данных выполняется валидация сразу всех полей (для простоты). Валидацию нужно построить на базе библиотеки yup. В коде уже описана вся нужная валидация. Осталось только вызвать проверку и записать тексты ошибок в объект состояния.
+//
+//   Кнопка отправки формы по умолчанию заблокирована. Она разблокируется когда валидна вся форма целиком и блокируется сразу, как только появляется невалидное значение.
+//
+//   HTML когда введены неправильные email и password (один из возможных вариантов):
+//
+// <div data-container="sign-up">
+//   <form data-form="sign-up" method="post">
+//     <div class="form-group">
+//       <label for="sign-up-name">Name</label>
+//       <input id="sign-up-name" type="text" class="form-control" name="name">
+//     </div>
+//     <div class="form-group">
+//       <label for="sign-up-email">Email<sup>*</sup></label>
+//       <!-- Если поле невалидно, то добавляется класс is-invalid -->
+//       <input id="sign-up-email" required="" type="email" class="form-control is-invalid" name="email"><div class="invalid-feedback">Value is not a valid email</div>
+//     </div>
+//     <div class="form-group">
+//       <label for="sign-up-password">Password<sup>*</sup></label>
+//       <input id="sign-up-password" required="" type="password" class="form-control is-invalid" name="password"><div class="invalid-feedback">Must be at least 6 letters</div>
+//     </div>
+//     <div class="form-group">
+//       <label for="sign-up-password-confirmation">Password Confirmation<sup>*</sup></label>
+//       <input id="sign-up-password-confirmation" required="" type="password" class="form-control" name="passwordConfirmation">
+//     </div>
+//     <input type="submit" class="btn btn-primary" value="Submit" disabled>
+//   </form>
+// </div>
+// После того как все поля введены правильно, данные формы отправляются постом на урл /users. Во время отправки кнопка отправки блокируется (во избежание двойной отправки).
+//
+// Когда форма отправлена, HTML меняется на следующий:
+//
+// <div data-container="sign-up">User Created!</div>
+// src/application.js
+// Экспортируйте функцию по умолчанию, которая реализует всю необходимую логику.
+//
+// Подсказки
+// Документация axios. Он работает очень похоже на fetch.
+// Для навигации по DOM-дереву полезно использовать nextElementSibling
+// API on-change позволяет получить предыдущее значение
+// Текст ошибок может отличаться от примера выше и подставляется самим yup
+// Данные формы можно отправлять в любом виде
+
+// мое
+// @ts-check
+/* eslint-disable no-param-reassign, no-console  */
+
+import keyBy from 'lodash/keyBy.js';
+// import has from 'lodash/has.js';
+import isEmpty from 'lodash/isEmpty.js';
+import * as yup from 'yup';
+import onChange from 'on-change';
+import axios from 'axios';
+
+// urls нельзя хардкодить: https://ru.hexlet.io/blog/posts/izbavlyaytes-ot-strok
+const routes = {
+  usersPath: () => '/users',
+};
+
+const schema = yup.object().shape({
+  name: yup.string().trim().required(),
+  email: yup.string().required('email must be a valid email').email(),
+  password: yup.string().required().min(6),
+  passwordConfirmation: yup.string()
+    .required('password confirmation is a required field')
+    .oneOf(
+      [yup.ref('password'), null],
+      'password confirmation does not match to password',
+    ),
+});
+
+// Этот объект можно использовать для того, чтобы обрабатывать ошибки сети.
+// Это необязательное задание, но крайне рекомендуем попрактиковаться.
+const errorMessages = {
+  network: {
+    error: 'Network Problems. Try again.',
+  },
+};
+
+// Используйте эту функцию для выполнения валидации
+// Выведите в консоль её результат, чтобы увидеть, как получить сообщения об ошибках
+const validate = (fields) => {
+  try {
+    schema.validateSync(fields, { abortEarly: false });
+    return {};
+  } catch (e) {
+    return keyBy(e.inner, 'path');
+  }
+};
+// BEGIN (write your solution here)
+const renderErrors = (fields, errors, fieldsUi) => {
+  Object.entries(fields).forEach(([name, element]) => {
+    const error = errors[name];
+    if (element.nextElementSibling) {
+      element.nextElementSibling.remove();
+    }
+    element.classList.remove('is-invalid');
+    if (error && fieldsUi.toched[name]) {
+      element.classList.add('is-invalid');
+      const feedback = document.createElement('div');
+      feedback.classList.add('invalid-feedback');
+      [feedback.textContent] = error.errors;
+      element.after(feedback);
+    }
+  });
+};
+
+const renderForm = (state, elements) => {
+  if (state.process === 'ready') {
+    elements.container.textContent = 'User Created!';
+  }
+};
+
+export default () => {
+  const state = {
+    form: {
+      process: 'fill',
+      valid: false,
+      error: {},
+      fields: {
+        name: '',
+        email: '',
+        password: '',
+        passwordConfirmation: '',
+      },
+      fieldsUi: {
+        toched: {
+          name: false,
+          email: false,
+          password: false,
+          passwordConfirmation: false,
+        },
+      },
+    },
+  };
+
+  const elements = {
+    container: document.querySelector('[data-container="sign-up"]'),
+    button: document.querySelector('.btn'),
+    fields: {
+      name: document.querySelector('#sign-up-name'),
+      email: document.querySelector('#sign-up-email'),
+      password: document.querySelector('#sign-up-password'),
+      passwordConfirmation: document.querySelector('#sign-up-password-confirmation'),
+    },
+  };
+
+  const watchedState = onChange(state, (path, value) => {
+    switch (path) {
+      case 'form.error': {
+        renderErrors(elements.fields, watchedState.form.error, watchedState.form.fieldsUi);
+        break;
+      }
+      case 'form.valid': {
+        elements.button.disabled = !value;
+        break;
+      }
+      default:
+        break;
+    }
+  });
+
+  Object.entries(elements.fields).forEach(([name, element]) => {
+    element.addEventListener('input', (e) => {
+      const { value } = e.target;
+      watchedState.form.fields[name] = value;
+      watchedState.form.fieldsUi.toched[name] = true;
+      const errors = validate(watchedState.form.fields);
+      watchedState.form.error = errors;
+      watchedState.form.valid = isEmpty(errors);
+    });
+  });
+
+  elements.button.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const data = {
+      name: watchedState.form.fields.name,
+      email: watchedState.form.fields.email,
+      password: watchedState.form.fields.password,
+    };
+
+    try {
+      await axios.post(routes.usersPath(), data);
+      watchedState.process = 'ready';
+      renderForm(watchedState, elements);
+    } catch (err) {
+      errorMessages();
+    }
+  });
+};
+// END
+
+// учителя
+
+// @ts-check
+/* eslint-disable no-param-reassign, no-console  */
+
+import keyBy from 'lodash/keyBy.js';
+import has from 'lodash/has.js';
+import isEmpty from 'lodash/isEmpty.js';
+import * as yup from 'yup';
+import onChange from 'on-change';
+import axios from 'axios';
+
+// urls нельзя хардкодить: https://ru.hexlet.io/blog/posts/izbavlyaytes-ot-strok
+const routes = {
+  usersPath: () => '/users',
+};
+
+const schema = yup.object().shape({
+  name: yup.string().trim().required(),
+  email: yup.string().required('email must be a valid email').email(),
+  password: yup.string().required().min(6),
+  passwordConfirmation: yup.string()
+    .required('password confirmation is a required field')
+    .oneOf(
+      [yup.ref('password'), null],
+      'password confirmation does not match to password',
+    ),
+});
+
+// Этот объект можно использовать для того, чтобы обрабатывать ошибки сети.
+// Это необязательное задание, но крайне рекомендуем попрактиковаться.
+const errorMessages = {
+  network: {
+    error: 'Network Problems. Try again.',
+  },
+};
+
+// Используйте эту функцию для выполнения валидации
+// Выведите в консоль её результат, чтобы увидеть, как получить сообщения об ошибках
+const validate = (fields) => {
+  try {
+    schema.validateSync(fields, { abortEarly: false });
+    return {};
+  } catch (e) {
+    return keyBy(e.inner, 'path');
+  }
+};
+
+// BEGIN
+const handleProcessState = (elements, processState) => {
+  switch (processState) {
+    case 'sent':
+      elements.container.innerHTML = 'User Created!';
+      break;
+
+    case 'error':
+      elements.submitButton.disabled = false;
+      break;
+
+    case 'sending':
+      elements.submitButton.disabled = true;
+      break;
+
+    case 'filling':
+      elements.submitButton.disabled = false;
+      break;
+
+    default:
+      // https://ru.hexlet.io/blog/posts/sovershennyy-kod-defolty-v-svitchah
+      throw new Error(`Unknown process state: ${processState}`);
+  }
+};
+
+const handleProcessError = () => {
+  // вывести сообщение о сетевой ошибке
+};
+
+const renderError = (fieldElement, error) => {
+  // Простой способ: очищать контейнер полностью перерисовывая его
+  // Более сложный способ, с оптимизацией: если элемент существует, то заменять контент
+  // Если элемент не существует, то создаём новый. Всё это является частью отрисовки
+  const feedbackElement = fieldElement.nextElementSibling;
+  if (feedbackElement) {
+    feedbackElement.textContent = error.message;
+    return;
+  }
+
+  fieldElement.classList.add('is-invalid');
+  const newFeedbackElement = document.createElement('div');
+  newFeedbackElement.classList.add('invalid-feedback');
+  newFeedbackElement.textContent = error.message;
+  fieldElement.after(newFeedbackElement);
+};
+
+const renderErrors = (elements, errors, prevErrors, state) => {
+  Object.entries(elements.fields).forEach(([fieldName, fieldElement]) => {
+    const error = errors[fieldName];
+    // правильный путь - проверять модель, а не DOM. Модель - единый источник правды.
+    const fieldHadError = has(prevErrors, fieldName);
+    const fieldHasError = has(errors, fieldName);
+    if (!fieldHadError && !fieldHasError) {
+      return;
+    }
+
+    if (fieldHadError && !fieldHasError) {
+      fieldElement.classList.remove('is-invalid');
+      fieldElement.nextElementSibling.remove();
+      return;
+    }
+
+    if (state.form.fieldsUi.touched[fieldName] && fieldHasError) {
+      renderError(fieldElement, error);
+    }
+  });
+};
+// Представление не меняет модель.
+// По сути, в представлении происходит отображение модели на страницу
+// Для оптимизации рендер происходит точечно в зависимости от того, какая часть модели изменилась
+// Функция возвращает функцию. Подробнее: https://ru.hexlet.io/qna/javascript/questions/chto-oznachaet-funktsiya-vida-const-render-a-b
+const render = (elements, initialState) => (path, value, prevValue) => {
+  switch (path) {
+    case 'form.processState':
+      handleProcessState(elements, value);
+      break;
+
+    case 'form.processError':
+      handleProcessError();
+      break;
+
+    case 'form.valid':
+      elements.submitButton.disabled = !value;
+      break;
+
+    case 'form.errors':
+      renderErrors(elements, value, prevValue, initialState);
+      break;
+
+    default:
+      break;
+  }
+};
+
+export default () => {
+  const elements = {
+    container: document.querySelector('[data-container="sign-up"]'),
+    form: document.querySelector('[data-form="sign-up"]'),
+    fields: {
+      name: document.getElementById('sign-up-name'),
+      email: document.getElementById('sign-up-email'),
+      password: document.getElementById('sign-up-password'),
+      passwordConfirmation: document.getElementById('sign-up-password-confirmation'),
+    },
+    submitButton: document.querySelector('input[type="submit"]'),
+  };
+  // Модель ничего не знает о контроллерах и о представлении. В ней не хранятся DOM-элементы.
+  const initialState = {
+    form: {
+      valid: true,
+      processState: 'filling',
+      processError: null,
+      errors: {},
+      fields: {
+        name: '',
+        email: '',
+        password: '',
+        passwordConfirmation: '',
+      },
+      fieldsUi: {
+        touched: {
+          name: false,
+          email: false,
+          password: false,
+          passwordConfirmation: false,
+        },
+      },
+    },
+  };
+  const state = onChange(initialState, render(elements, initialState));
+  // Контроллеры меняют модель, тем самым вызывая рендеринг.
+  // Контроллеры не должны менять DOM напрямую, минуя представление.
+  Object.entries(elements.fields).forEach(([fieldName, fieldElement]) => {
+    fieldElement.addEventListener('input', (e) => {
+      const { value } = e.target;
+      state.form.fields[fieldName] = value;
+      state.form.fieldsUi.touched[fieldName] = true;
+      const errors = validate(state.form.fields);
+      state.form.errors = errors;
+      state.form.valid = isEmpty(errors);
+    });
+  });
+
+  elements.form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    state.form.processState = 'sending';
+    state.form.processError = null;
+
+    try {
+      const data = {
+        name: state.form.fields.name,
+        email: state.form.fields.email,
+        password: state.form.fields.password,
+      };
+      await axios.post(routes.usersPath(), data);
+      state.form.processState = 'sent';
+    } catch (err) {
+      // в реальных приложениях необходимо помнить об обработке ошибок сети
+      state.form.processState = 'error';
+      state.form.processError = errorMessages.network.error;
+      throw err;
+    }
+  });
+};
+// END
